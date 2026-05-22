@@ -1,6 +1,12 @@
+import logging
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from src.api.v1 import sessions, tracks, health
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="time=%(asctime)s level=%(levelname)s logger=%(name)s msg=%(message)s",
+)
 
 app = FastAPI(
     title="Conference API",
