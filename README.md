@@ -215,3 +215,39 @@ El endpoint de listado de sesiones responda en menos de 100 ms.
 | Con caché (Redis hit) | 5–20 ms | Solo es un GET a Redis y deserializar el JSON |
 | Sin caché (consulta a BD) | 50–150 ms | Una consulta async a Postgres con joins |
 | Archivos estáticos (CSS, JS) | 1–5 ms | Nginx los sirve directo, sin pasar por Python |
+
+
+# Endpoints defensa
+
+Me toco el B3
+
+## Endpoint GET /api/v1/speakers/{id}
+
+Primero cree un nuevo archivo llamado speakers.py en api/v1/ defini como ruta "speakers"
+y cree la funcion get_speaker_detail que llama a speaker_service y retorna su respuesta, caso contrario indica que no se ha encontrado el speaker
+
+En service esta la logica de negocio en la funcion get_speaker, primeramente a igual que sessiones obtengo cache_key y cache_data para posterioramente verificar si ya se encuentra en cache.
+Caso contrario llamo al repositorio de postgres speaker_repository.
+
+Como se me pidio devolver  las siguientes sessiones **next_sessions** pero tambien el conteo de las sessiones pasadas **past_sessions_count**, decidi hacer un for que recorre las sessiones, si las sessiones son el futuro lo agrego a la lista de nxt_sessions si son en el pasado lo agrego al contador de sessiones pasadas 
+
+al final lo ordeno  porque se me pidio que esten ordenasas por **start_at** ascendente y lo envio el resultado.
+
+Tambien en repository agregue la consulta get_speaker_by_id es simple solo selecciono el speaker que tenga el mismo id
+
+Una cosa importante fue modificar speaker_schema solo tuve que agregar los contratos de respuesta de mi API.
+
+finalmente cree los providers fue bastante facil porque son siempre iguales, creo que se podria mejorar usando alguna abstraccion.
+
+- Que me falto:
+Se podria optimizar bastante, pero no soy muy bueno con SQLAlchemy asi que decidi hacerlo con for en vez de usar mucho su ORM
+
+----
+
+## Endpoint GET /api/v1/speakers/?has_upcoming=true
+
+Fue mas facil solo tuve que hacer primero hice tambien su api en  speakers, igual que en el anterior caso, hacer una consulta para obtener los speakers con al menos una sesion futura, hice su respectivo servicio mas corto y su provider
+
+- Que me falto
+Creo que en este caso nada, capaz revisar mas a fondo si tiene errores
+

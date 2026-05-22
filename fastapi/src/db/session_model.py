@@ -1,19 +1,10 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, ForeignKey, Table, func, select
+from sqlalchemy import ForeignKey, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 from src.db.base import Base
 from src.db.registration_model import RegistrationModel
-from src.db.speaker_model import SpeakerModel
-
-_session_speaker_assoc = Table(
-    "session_speaker",
-    Base.metadata,
-    Column("session_id", UUID, ForeignKey("content.session.id")),
-    Column("speaker_id", UUID, ForeignKey("content.speaker.id")),
-    schema="content",
-)
 
 class SessionModel(Base):
     __tablename__ = "session"
@@ -28,8 +19,9 @@ class SessionModel(Base):
     capacity: Mapped[int | None] = mapped_column()
     track = relationship("TrackModel", lazy="noload")
     
-    speakers: Mapped[list[SpeakerModel]] = relationship(
-        secondary=_session_speaker_assoc, lazy="noload", viewonly=True
+    speakers: Mapped[list["SpeakerModel"]] = relationship(
+        secondary="content.session_speaker",
+        viewonly =True,
     )
 
     registered: Mapped[int] = column_property(
