@@ -5,6 +5,9 @@ from conference.models import Conference, Registration, Session, Speaker, Track
 SessionSpeaker = Session.speakers.through
 
 TRACK_NAMES = ["Backend", "Frontend", "DevOps", "Security", "Data Science"]
+STATUSES = ["confirmed", "waitlist", "cancelled"]
+REGISTRATIONS_PER_SESSION = 500
+BATCH_SIZE = 2000
 
 def session_start(index):
     return datetime(2026, 7, 1 + (index % 5), 9 + (index // 5) % 8, tzinfo=timezone.utc)
@@ -12,6 +15,7 @@ def session_start(index):
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         if Conference.objects.filter(slug="djangocon-2026").exists():
+            self.stdout.write("Seed data already present, skipping.")
             return
 
         conference = Conference.objects.create(
@@ -48,11 +52,25 @@ class Command(BaseCommand):
             for i in range(len(sessions))
         ])
 
-        Registration.objects.bulk_create([
-            Registration(
-                session=sessions[i % len(sessions)],
-                user_email=f"user{i + 1}@example.com",
-                status=random.choice(["confirmed", "waitlist", "cancelled"]),
-            )
-            for i in range(500)
-        ])
+        batch = []
+
+        for s_idx, session in enumerate(sessions):
+            for r_idx in range(REGISTRATIONS_PER_SESSION):
+                batch.append(Registration(
+                    session=session,
+                    user_email=f"s{s_idx}_r{r_idx}@example.com",
+                    status=STATUSES[r_idx % len(STATUSES)],
+                ))
+
+            if len(batch) >= BATCH_SIZE:
+                Registration.objects.bulk_create(batch)
+                batch = []
+        if batch:
+            Registration.objects.bulk_create(batch)
+
+        total_registrations = len(sessions) * REGISTRATIONS_PER_SESSION
+        
+        self.stdout.write(self.style.SUCCESS(
+            f"Seeded: 1 conference, {len(tracks)} tracks, {len(speakers)} speakers, "
+            f"{len(sessions)} sessions, {total_registrations} registrations."
+        ))
