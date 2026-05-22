@@ -85,7 +85,7 @@ DATABASES = {
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'conference'),
         'HOST': os.environ.get('POSTGRES_HOST', 'postgres'),
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-        'OPTIONS': {'options': '-c search_path=content,public'},
+        'OPTIONS': {'options': '-c search_path=public,content'},
     }
 }
 
