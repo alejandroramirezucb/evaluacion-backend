@@ -9,7 +9,6 @@ def base_fields():
         ("modified", models.DateTimeField(auto_now=True)),
     ]
 
-
 class Migration(migrations.Migration):
     initial = True
     dependencies = []
@@ -67,12 +66,6 @@ class Migration(migrations.Migration):
                 ("starts_at", models.DateTimeField()),
                 ("ends_at", models.DateTimeField()),
                 ("capacity", models.PositiveIntegerField(null=True, blank=True)),
-                ("speakers", models.ManyToManyField(
-                    "conference.Speaker",
-                    through="conference.SessionSpeaker",
-                    related_name="sessions",
-                    blank=True,
-                )),
             ],
             options={"db_table": '"content"."session"', "ordering": ["starts_at"]},
         ),
@@ -114,6 +107,17 @@ class Migration(migrations.Migration):
                 )),
             ],
             options={"db_table": '"content"."registration"', "ordering": ["-created"]},
+        ),
+
+        migrations.AddField(
+            model_name="Session",
+            name="speakers",
+            field=models.ManyToManyField(
+                "conference.Speaker",
+                through="conference.SessionSpeaker",
+                related_name="sessions",
+                blank=True,
+            ),
         ),
 
         migrations.AlterUniqueTogether(
